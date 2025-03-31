@@ -1,0 +1,92 @@
+Summary
+
+Successfully led multi-year collaborative projects in machine learning and engineering.
+Breadth of experience in data science, AI/ML, signal processing, structured/unstructured data.
+
+Experience
+ 
+Research Scientist, Nov. 2022 -- Nov. 2024
+Max Planck Institute for Intelligent Systems
+Stuttgart, Germany
+
+Managed engineering projects in user-interactive robots, machine learning, and computer vision.
+Designed components for an electrostatic robotic system.
+Developed ML-based algorithms and hardware for a user-interactive touch screen device.
+Trained LSTM models for time series sensor forecasting.
+Organized business conferences and managed laboratory equipment.
+
+NSF Graduate Researcher, Aug. 2018 -- Aug. 2022
+Advanced Medical Technologies Laboratory
+Boulder, CO
+
+Implemented real-time discrete control of a 100 actuation/sensor non-linear robot.
+Performed signal processing and sensor fusion on capacitive, resistive, magnetic, sensors.
+Designed and evaluated gradient descent algorithms for dynamic object manipulation tasks.
+Secured research funding totaling \$150k through grant writing.
+
+Structural Dynamics R\&D Intern, Jun. 2017 -- Aug. 2018
+Sandia National Laboratories
+Albuquerque, NM
+
+Analyzed data of multi-input/multi-output mechanical vibration tests.
+Programmed signal processing algorithms for time series denoising.
+Published an open-access technical report to documenting filtering techniques.
+
+Technical Specialist Intern, Jun. -- Aug. 2016
+Lockheed Martin Rotary and Mission Systems
+Owego, NY
+
+Tested VH-92 helicopter flight hardware under simulated conditions (shock, vibration, thermal).
+Analyzed stress components in flight rack panels and stiffeners for FAA certification.
+
+Mechanical Engineering Intern, Jun. -- Aug. 2015
+Doron Precision Systems Inc.
+Binghamton, NY
+
+Designed an enclosure for a $100k Haul mining truck simulator which went into direct production.
+Collaborated with machinists and tool operators to optimize design for fabrication.
+
+Skills
+Languages: Python, MATLAB, Julia, SQL, LaTeX
+Platforms/packages: Pandas, PyTorch, scikit-learn, TensorFlow, git/github, Jupyter, Linux
+Software: Microsoft Office/Excel, AWS cloud, SolidWorks/3D CAD, photo/video editing
+
+Projects
+
+Text simplification for online Chinese content (NLP, ML, LLM, ETL)
+
+Developed end-to-end pipeline to reduce reading complexity for Chinese language learners.
+Fine-tuned generative BART model with hyperparameter optimization using Wikipedia dataset.
+Achieved "SARI" simplification score up to 39.9, similar to state of the art (MCTS).
+
+Automated job/resume matching service (Web scraping, ETL, NLP)
+
+Created ETL pipeline to scrape job data from the web.
+Trained fastText embedding to find keyword match between job and resume content.
+Matching jobs used to improve application response rate while reducing search time.
+
+Education
+
+Ph.D. Mechanical Engineering, University of Colorado Boulder, Aug. 2022
+M.S. Mechanical Engineering, University of Colorado Boulder, May 2020
+B.S. Mechanical Engineering, Cornell University, summa cum laude, Dec. 2017
+
+Published technical work
+
+A. Shagan*, B.K. Johnson*, et al., "Transparent electrostatic arrays for surface haptic displays," in preparation.  \vspace{0pt}  
+B.K. Johnson, J.S. Humbert, M.E. Rentschler, "A gradient descent approach for velocity control and object manipulation on shape displays," under review.  \vspace{0pt}
+B.K. Johnson*, M. Naris*, et al., "A multifunctional soft robotic shape display with high-speed actuation, sensing, and control," Nature Communications 14, 4516. (2023)
+V. Sundaram*, K. Ly*, B.K. Johnson, et al., "Embedded magnetic sensing for feedback control of soft HASEL actuators," IEEE Transactions on Robotics 39, 808-822. (2022)
+B.K. Johnson, et al., "Identification and control of a nonlinear soft actuator and sensor system," IEEE Robotics and Automation Letters 5, 3783-3790. (2020)
+B. Johnson, J.S. Cap, "Removal of stationary sinusoidal noise from random vibration signals," Sandia National Lab, SAND-2018-1900. (2018)
+
+Awards
+
+Beverly Sears Graduate Research Grant, 2022
+National Science Foundation Graduate Research Fellowship, 2019
+National Defense Science and Engineering Graduate Fellowship, 2019
+Dean's Graduate Innovation Assistantship, 2018
+
+Personal Interests
+
+Aviation (Private Pilot), Chinese language, Piano, Photography, Science fiction
