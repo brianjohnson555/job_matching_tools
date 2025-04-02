@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import random
 import time
+import aiohttp
+import asyncio
+import yarl
 
 def get_fresh_cookies(base_url, user_agent):
 
@@ -20,34 +23,109 @@ def get_fresh_cookies(base_url, user_agent):
     cookies["li_gp"] = "MTsxNzQzMTAzMjU1OzA="
     return cookies
 
-def scrape_linkedin_jobs(proxies, pages=3, job_title="Data Scientist", location="Chicago", post_time=1):
+async def fetch_jobs(session, url, headers, cookies, proxy):
+    try:
+        print(url)
+        time.sleep(random.uniform(2, 5))
+        async with session.get(url, headers=headers, cookies=cookies, proxy=proxy, timeout=10) as response:
+            if response.status == 200:
+                await response.text()
+            else:
+                print(f"Failed (Status {response.status})")
+                return None
+            
+            jobs = []
+            soup = BeautifulSoup(response.text(), "html.parser")
+            job_cards = soup.find_all("div", class_="base-card")
+
+            if not job_cards: #if no jobs found
+                print("No more jobs found.")
+                return None
+
+            for job in job_cards:
+                title_elem = job.find("h3", class_="base-search-card__title")
+                company_elem = job.find("h4", class_="base-search-card__subtitle")
+                location_elem = job.find("span", class_="job-search-card__location")
+                time_elem = job.find("time")
+                link_elem = job.find("a", class_="base-card__full-link")  # Job details link
+
+                title = title_elem.text.strip() if title_elem else "N/A"
+                company = company_elem.text.strip() if company_elem else "N/A"
+                location = location_elem.text.strip() if location_elem else "N/A"
+                job_link = link_elem.get("href") if link_elem else "N/A"
+                job_time = time_elem.text.strip() if time_elem else "N/A"
+
+                jobs.append({"Title": title, "Company": company, "Location": location, "Link": job_link, "Posted time": job_time})
+            print(f"{len(jobs)} scraped successfully.")
+            return jobs
+    except Exception as e: 
+        print("Exception occured fetching.")
+        print(e)
+        return None
+
+async def scrape_linkedin_jobs(proxies, pages=3, job_title="Data Scientist", location="Chicago", post_time=1):
     base_url = f"https://www.linkedin.com/jobs/search?keywords={job_title}&location={location}&f_TPR=r{int(post_time*86400)}&position=1&pageNum=0"
     API_url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?"
     user_agent = UserAgent().random
-    jobs = []
-
     cookies = get_fresh_cookies(base_url, user_agent)
+    headers = {
+    "User-Agent": user_agent,
+    "Csrf-Token": cookies["JSESSIONID"],
+    # "Accept": "*/*",
+    # "Accept-Encoding": "gzip, deflate, br, zstd",
+    # "Accept-Language": "en-US,en;q=0.5",
+    # "Connection": "keep-alive",
+    # "DNT": "1",
+    # "Host": "www.linkedin.com",
+    # "Priority": "u=4",
+    "Referer": base_url,
+    # "Sec-Fetch-Dest": "empty",
+    # "Sec-Fetch-Mode": "cors",
+    # "Sec-Fetch-Site": "same-origin",
+    # "Sec-GPC": "1",
+    }
+    jobs = []
+    tasks = []
+    start_points = [int(i*10) for i in range(pages)]  # Pagination
 
     if not cookies:
         print("Could not retrieve cookies. Exiting.")
         return jobs
 
+    async with aiohttp.ClientSession() as session:
+            for start in start_points:
+                url = f"{API_url}keywords={job_title.replace(" ", "%20")}&location={location}&f_TPR=r{int(post_time*86400)}&start={start}"
+                url = yarl.URL(url, encoded=True)
+                # url = "http://google.com"
+                tasks.append(fetch_jobs(session, url, headers, cookies, proxies["https"]))
+
+            results = await asyncio.gather(*tasks)  # Run requests in parallel
+
+            for result in results:
+                if result:
+                    jobs.append(result)
+
+    print("Scraping job descriptions...")
+    jobs = scrape_job_descriptions(jobs, proxies)
+    print("Finished!")
+    return jobs
+
+
+def scrape_linkedin_jobs_single(proxies, pages=3, job_title="Data Scientist", location="Chicago", post_time=1):
+    base_url = f"https://www.linkedin.com/jobs/search?keywords={job_title}&location={location}&f_TPR=r{int(post_time*86400)}&position=1&pageNum=0"
+    API_url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?"
+    user_agent = UserAgent().random
+    cookies = get_fresh_cookies(base_url, user_agent)
     headers = {
     "User-Agent": user_agent,
     "Csrf-Token": cookies["JSESSIONID"],
-    "Accept": "*/*",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Connection": "keep-alive",
-    "DNT": "1",
-    "Host": "www.linkedin.com",
-    "Priority": "u=4",
     "Referer": base_url,
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-origin",
-    "Sec-GPC": "1",
     }
+    jobs = []
+
+    if not cookies:
+        print("Could not retrieve cookies. Exiting.")
+        return jobs
 
     for page in range(pages):
         try:
@@ -82,10 +160,9 @@ def scrape_linkedin_jobs(proxies, pages=3, job_title="Data Scientist", location=
             print(f"{len(jobs)} scraped successfully.")
             time.sleep(random.uniform(2, 5))
         except:
-            print("Exception occured.")
+            print("Exception occured scraping.")
             return jobs
     print("Scraping job descriptions...")
-    # Scrape job descriptions if failed previously:
     jobs = scrape_job_descriptions(jobs, proxies)
     print("Finished!")
     return jobs
@@ -110,8 +187,9 @@ def scrape_job_descriptions(jobs, proxies):
                     job_description_elem = soup.find("div", class_="description__text")
                     job_des = job_description_elem.text.strip().replace("\n"," ") if job_description_elem else "N/A"
                     job["Description"] = job_des
-            except:
+            except Exception as e: 
                 print("Exception during description scrape.")
+                print(e)
                 return jobs
         idx += 1
 

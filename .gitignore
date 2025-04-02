@@ -1,2 +1,5 @@
 /env
 /data/fasttext
+/data/kaggle_postings
+/data/proxies/proxies.py
+/data/proxies/__pycache__
