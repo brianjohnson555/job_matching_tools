@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import random
 import time
+from datetime import datetime
 from src.proxies import proxies
 
 def get_fresh_cookies(base_url: str, user_agent: str):
@@ -48,17 +49,25 @@ def parse_job_data(response):
 
         job_des = scrape_job_description_single(job_link) if link_elem else "N/A"
 
-        jobs.append({"Title": title, 
-                     "Company": company, 
-                     "Link": job_link, 
-                     "Posted time": job_time, 
-                     "Description": job_des,
-                     "Location": job_location,
+        jobs.append({"title": title, 
+                     "company": company, 
+                     "link": job_link, 
+                     "posted time": job_time, 
+                     "description": job_des,
+                     "location": job_location,
                      })
     return jobs
 
 def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_time=1):
     """Scrapes job posting data from linkedin. Param "post_time" = time in days."""
+    # Create empty job information with query data 
+    job_data = {
+                "query title": job_title,
+                "query location": location,
+                "query time": post_time,
+                "query execution": datetime.today().strftime("%Y-%m-%d"),
+                "jobs": [],
+                }
 
     # Create URL, get cookies and header data:
     base_url = f"https://www.linkedin.com/jobs/search?keywords={job_title}&location={location}&f_TPR=r{int(post_time*86400)}&position=1&pageNum=0"
@@ -76,7 +85,6 @@ def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_ti
         return None
     
     # Iterate through retrieval pages:
-    jobs = []
     for page in range(pages): 
         try:
             # Get new page url and make request
@@ -87,16 +95,16 @@ def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_ti
                 print(f"Failed to retrieve jobs on page {page}: {response.status_code}")
             else:
                 time.sleep(random.uniform(1,2))
-                jobs += parse_job_data(response) # add to list
-                print(f"{len(jobs)} scraped successfully.")
+                job_data["jobs"] += parse_job_data(response) # add to list
+                print(f"{len(job_data["jobs"])} scraped successfully.")
         except:
             print("Exception occured during scraping.")
-            return jobs
-    # run job_des scrape again in case of any errors:
+            return job_data
+    # Run job_des scrape again in case of any errors:
     print("Making sure all descriptions scraped...")
-    jobs = scrape_job_descriptions(jobs)
+    job_data["jobs"] = scrape_job_descriptions(job_data["jobs"])
     print("Finished!")
-    return jobs
+    return job_data
 
 def scrape_job_description_single(url: str):
     """Scrapes single job description from the given url. Returns str of job description."""
@@ -114,6 +122,7 @@ def scrape_job_description_single(url: str):
         else:
             soup = BeautifulSoup(response.text, "html.parser")
             job_description_elem = soup.find("div", class_="description__text")
+            #TODO: improve description parsing to add new lines, spaces were necessary.
             job_des = job_description_elem.text.strip().replace("\n"," ") if job_description_elem else "N/A"
             return job_des
     except Exception as e: 
@@ -125,7 +134,7 @@ def scrape_job_descriptions(jobs: list):
     """Scrapes all job descriptions from the given jobs list. Returns jobs list."""
     idx = 0
     for job in jobs:
-        if "Description" not in job:
+        if "description" not in job:
             print(f"Getting job desc number {idx}")
             headers = {"User-Agent": UserAgent().random, # make new random user for each job
                         "Referer": "https://linkedin.com",
@@ -142,7 +151,7 @@ def scrape_job_descriptions(jobs: list):
                     soup = BeautifulSoup(response.text, "html.parser")
                     job_description_elem = soup.find("div", class_="description__text")
                     job_des = job_description_elem.text.strip().replace("\n"," ") if job_description_elem else "N/A"
-                    job["Description"] = job_des
+                    job["description"] = job_des
             except Exception as e: 
                 print("Exception during description scrape.")
                 print(e)
@@ -155,6 +164,6 @@ def check_num_desc(jobs):
     """Mini func to check how many job descriptions have been retrieved."""
     idx = 0
     for job in jobs:
-        if "Description" in job:
+        if "description" in job:
             idx += 1
     return idx
