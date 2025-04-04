@@ -122,8 +122,7 @@ def scrape_job_description_single(url: str):
         else:
             soup = BeautifulSoup(response.text, "html.parser")
             job_description_elem = soup.find("div", class_="description__text")
-            #TODO: improve description parsing to add new lines, spaces were necessary.
-            job_des = job_description_elem.text.strip().replace("\n"," ") if job_description_elem else "N/A"
+            job_des = extract_clean_text(job_description_elem)
             return job_des
     except Exception as e: 
         print("Exception during description scrape.")
@@ -150,8 +149,7 @@ def scrape_job_descriptions(jobs: list):
                 else:
                     soup = BeautifulSoup(response.text, "html.parser")
                     job_description_elem = soup.find("div", class_="description__text")
-                    job_des = job_description_elem.text.strip().replace("\n"," ") if job_description_elem else "N/A"
-                    job["description"] = job_des
+                    job["description"] = extract_clean_text(job_description_elem)
             except Exception as e: 
                 print("Exception during description scrape.")
                 print(e)
@@ -160,10 +158,21 @@ def scrape_job_descriptions(jobs: list):
 
     return jobs
 
-def check_num_desc(jobs):
-    """Mini func to check how many job descriptions have been retrieved."""
-    idx = 0
-    for job in jobs:
-        if "description" in job:
-            idx += 1
-    return idx
+def extract_clean_text(tag) -> str:
+    """Extracts clean text with spacing preserved from bs4.element.tag"""
+    block_tags = {'p', 'li', 'br'}
+
+    texts = []
+
+    for child in tag.descendants:
+        if child.name == 'br':
+            texts.append('\n')
+        elif child.name in block_tags:
+            texts.append('\n' + child.get_text() + '\n')
+
+    # Join, normalize newlines/spaces
+    combined = ''.join(texts)
+    lines = [line.strip() for line in combined.splitlines()]
+    result = '\n'.join(line for line in lines if line)
+
+    return result
