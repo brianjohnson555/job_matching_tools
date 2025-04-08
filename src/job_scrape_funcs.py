@@ -86,6 +86,7 @@ def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_ti
     
     # Iterate through retrieval pages:
     for page in range(pages): 
+        print(f"Scraping page {page}")
         try:
             # Get new page url and make request
             url = f"{API_url}keywords={job_title}&location={location}&f_TPR=r{int(post_time*86400)}&start={int(page*10)}"
@@ -97,8 +98,9 @@ def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_ti
                 time.sleep(random.uniform(1,2))
                 job_data["jobs"] += parse_job_data(response) # add to list
                 print(f"{len(job_data["jobs"])} scraped successfully.")
-        except:
+        except Exception as e:
             print("Exception occured during scraping.")
+            print(e)
             return job_data
     # Run job_des scrape again in case of any errors:
     print("Making sure all descriptions scraped...")
