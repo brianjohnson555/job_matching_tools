@@ -12,13 +12,8 @@ def job_pipeline(job_title, location, post_time, pages, resume_path):
     ana.generate_report(df)
     return df
 
-def lambda_handler(event, context):
-    job_pipeline(job_title="Data Scientist", 
+job_pipeline(job_title="Data Scientist", 
                   location="Chicago", 
                   post_time=0.26, 
                   pages=5,
-                  resume_path="resume.pdf")    
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Scraping complete')
-    }
+                  resume_path="resume.pdf")

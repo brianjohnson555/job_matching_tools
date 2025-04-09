@@ -9,8 +9,9 @@ import re
 from sentence_transformers import SentenceTransformer
 
 # load pretrained data:
-nlp = spacy.load("en_core_web_lg")
-model = SentenceTransformer('all-MiniLM-L6-v2')
+nlp = spacy.load("en_core_web_sm") #sm, md, lg
+# model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('/models/sbert')
 # ft = fasttext.load_model('./data/fasttext/cc.en.300.bin')
 
 def cos_sim(a,b):
