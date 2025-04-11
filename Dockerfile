@@ -34,6 +34,8 @@ COPY --from=builder /var/lang/lib/python3.12 /var/lang/lib/python3.12
 # Copy downloaded model
 COPY --from=builder /models /models
 # Copy source code
+COPY /data /data
+# Copy source code
 COPY . .
 
 # Set entry point

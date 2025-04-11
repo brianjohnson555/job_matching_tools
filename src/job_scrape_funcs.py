@@ -6,6 +6,10 @@ import time
 from datetime import datetime
 from src.proxies import proxies
 
+filters = {"company":{"jobs via dice", "jobot"},
+           "title": {"manager"},
+           }
+
 def get_fresh_cookies(base_url: str, user_agent: str):
     """Retrieves site cookies using the given url and user agent."""
 
@@ -46,16 +50,17 @@ def parse_job_data(response):
         job_location = location_elem.text.strip() if location_elem else "N/A"
         job_link = link_elem.get("href") if link_elem else "N/A"
         job_time = time_elem.text.strip() if time_elem else "N/A"
-
-        job_des = scrape_job_description_single(job_link) if link_elem else "N/A"
-
-        jobs.append({"title": title, 
-                     "company": company, 
-                     "link": job_link, 
-                     "posted time": job_time, 
-                     "description": job_des,
-                     "location": job_location,
-                     })
+        if company.lower() in filters["company"] or title.lower() in filters["title"]:
+            print("Job filtered out") # job posting gets filtered out, don't scrape description or append to list
+        else:
+            job_des = scrape_job_description_single(job_link) if link_elem else "N/A"
+            jobs.append({"title": title, 
+                        "company": company, 
+                        "link": job_link, 
+                        "posted time": job_time, 
+                        "description": job_des,
+                        "location": job_location,
+                        })
     return jobs
 
 def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_time=1):
