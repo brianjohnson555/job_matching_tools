@@ -14,6 +14,9 @@ def job_pipeline(job_title, location, post_time, pages, resume_path, word_scores
     return html
 
 def lambda_handler(event, context):
+    print("🔍 Raw event received:")
+    print(json.dumps(event, indent=2))
+    
     if event.get("body"):
         body = json.loads(event["body"])
     job_title = str(body.get("job title",""))

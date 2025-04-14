@@ -39,6 +39,7 @@ def find_job_match(job_data: pd.DataFrame, resume_path: str, word_scores: dict):
     # Calculate cos_sim:
     df["similarity"] = df["embedding"].map(lambda a: cos_sim(a, b=resume_embed))
     # Modify score based on keywords:
+    #TODO: score all keywords, not just overlapping w/ resume.
     df["similarity_adj"] = df.apply(lambda row: score_keywords(row, word_scores=word_scores), axis=1)
     # Sort:
     df.sort_values(by=["similarity_adj"], ascending=False, inplace=True)
