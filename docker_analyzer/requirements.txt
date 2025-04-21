@@ -1,10 +1,6 @@
-beautifulsoup4==4.13.3
-fake_useragent==2.1.0
 numpy==2.2.4
 pandas==2.2.3
 pymupdf==1.25.5
-Requests==2.32.3
 sentence_transformers==4.0.2
 spacy==3.8.5
-pysocks==1.7.1
 boto3==1.37.37
