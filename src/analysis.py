@@ -1,26 +1,16 @@
+"""Analysis functions to match scraped job data with resume."""
 from numpy import dot
 from numpy.linalg import norm
-# import fasttext
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
-import spacy
 import pymupdf
 import re
-from sentence_transformers import SentenceTransformer
-
-# load pretrained data:
-nlp = spacy.load("en_core_web_sm") #sm, md, lg
-# model = SentenceTransformer('all-MiniLM-L6-v2')
-model = SentenceTransformer('/models/sbert')
-# ft = fasttext.load_model('./data/fasttext/cc.en.300.bin')
-custom_stop_words = {"team", "work", "tool", "system", "experience", "problem", " ", "  ", "product", 
-                     "university", "degree", "fund", "member", "content"}
 
 def cos_sim(a,b):
     """Cosine similarity between vectors a, b"""
     return dot(a, b)/(norm(a)*norm(b))
 
-def find_job_match(job_data: pd.DataFrame, resume_path: str, word_scores: dict):
+def find_job_match(embed_model, nlp_model, job_data: pd.DataFrame, resume_path: str, stop_words: set, word_scores: dict):
     """Returns DataFrame of top matching jobs, based on:
     (1) cosine similarity between resume and job description embeddings
     (2) keyword match between resume and job description via NER"""
@@ -29,13 +19,13 @@ def find_job_match(job_data: pd.DataFrame, resume_path: str, word_scores: dict):
 
     # Compute embeddings:
     df = job_data[job_data["description"].isnull()==False] # remove any null values
-    df["embedding"] = df["description"].map(lambda x: model.encode(x))
+    df["embedding"] = df["description"].map(lambda x: embed_model.encode(x))
     # df["embedding"] = df["description"].map(ft.get_word_vector)
     # resume_embed = ft.get_word_vector(resume)
-    resume_embed = model.encode(resume, convert_to_tensor=True)
+    resume_embed = embed_model.encode(resume, convert_to_tensor=True)
 
     # Calculate keywords between resume, job description:
-    df["keywords"] = df["description"].map(lambda job_desc: find_keywords(job_desc, resume=resume))
+    df["keywords"] = df["description"].map(lambda job_desc: find_keywords(nlp_model, stop_words, job_desc, resume=resume))
     # Calculate cos_sim:
     df["similarity"] = df["embedding"].map(lambda a: cos_sim(a, b=resume_embed))
     # Modify score based on keywords:
@@ -49,30 +39,23 @@ def find_job_match(job_data: pd.DataFrame, resume_path: str, word_scores: dict):
 
     return df
 
-def find_keywords(job_desc: str, resume: str):
+def find_keywords(nlp_model, stop_words: set, job_desc: str, resume: str):
     """Returns set of keywords based on NER via spacy pretrained."""
     job_desc = re.sub(r'[^\w\s]|[\d_]', '', job_desc) # remove punctuation
     resume = re.sub(r'[^\w\s]|[\d_]', '', resume) # remove punctuation
-    res = nlp(resume)
-    des = nlp(job_desc)
+    res = nlp_model(resume)
+    des = nlp_model(job_desc)
 
     remove_pos = ["ADV", "ADJ", "VERB"]
-    with open("./data/cities1000.txt", encoding="utf-8") as f:
-        cities = set(line.split("\t")[1].lower() for line in f)
-    with open("./data/countries.txt", encoding="utf-8") as f:
-        countries = set(line.split("\t")[1].lower() for line in f)
-
-    custom_stop_words.update(set(cities)) # add city names to stop words
-    custom_stop_words.update(set(countries)) # add country names to stop words
 
     resumeset = set([token.text for token in res 
                      if not token.is_stop # remove stop words
                      and token.pos_ not in remove_pos # remove adverbs, adjectives, verbs
-                     and token.lemma_.lower() not in custom_stop_words]) # remove custom words
+                     and token.lemma_.lower() not in stop_words]) # remove custom words
     jobset = set([token.text for token in des 
                   if not token.is_stop 
                   and token.pos_ not in remove_pos
-                  and token.lemma_.lower() not in custom_stop_words])
+                  and token.lemma_.lower() not in stop_words])
     #TODO: also return fuzzy/close matches
     return resumeset.intersection(jobset)
 

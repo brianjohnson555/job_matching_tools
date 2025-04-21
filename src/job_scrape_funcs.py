@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from src.proxies import proxies
 
-filters = {"company":{"jobs via dice", "jobot"},
+filters = {"company":{"jobs via dice", "jobot", "hiretalent", "lensa"},
            "title": {"manager"},
            }
 
@@ -50,7 +50,7 @@ def parse_job_data(response):
         job_location = location_elem.text.strip() if location_elem else "N/A"
         job_link = link_elem.get("href") if link_elem else "N/A"
         job_time = time_elem.text.strip() if time_elem else "N/A"
-        if company.lower() in filters["company"] or title.lower() in filters["title"]:
+        if company.lower() in filters["company"] or any(title.lower().find(filt)>=0 for filt in filters["title"]):
             print("Job filtered out") # job posting gets filtered out, don't scrape description or append to list
         else:
             job_des = scrape_job_description_single(job_link) if link_elem else "N/A"
@@ -121,7 +121,7 @@ def scrape_job_description_single(url: str):
 
     try:
         # Make request to full job posting page
-        response = requests.get(url, headers=headers, proxies=proxies)
+        response = requests.get(url, headers=headers, proxies=proxies, timeout=15)
 
         if response.status_code != 200:
             print(f"Failed to retrieve job details: {response.status_code}")
@@ -149,7 +149,7 @@ def scrape_job_descriptions(jobs: list):
             job_url = job["Link"]
             try:
                 # Make request to full job posting page
-                response = requests.get(job_url, headers=headers, proxies=proxies)
+                response = requests.get(job_url, headers=headers, proxies=proxies, timeout=10)
 
                 if response.status_code != 200:
                     print(f"Failed to retrieve job details: {response.status_code}")
@@ -157,6 +157,10 @@ def scrape_job_descriptions(jobs: list):
                     soup = BeautifulSoup(response.text, "html.parser")
                     job_description_elem = soup.find("div", class_="description__text")
                     job["description"] = extract_clean_text(job_description_elem)
+            except requests.exceptions.Timeout as e: 
+                print("Timeout error.")
+                print(e)
+                return jobs
             except Exception as e: 
                 print("Exception during description scrape.")
                 print(e)
