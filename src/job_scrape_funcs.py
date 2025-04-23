@@ -7,7 +7,7 @@ from datetime import datetime
 from src.proxies import proxies
 
 filters = {"company":{"jobs via dice", "jobot", "hiretalent", "lensa"},
-           "title": {"manager"},
+           "title": {"manager", "lead", "director"},
            }
 
 def get_fresh_cookies(base_url: str, user_agent: str):
