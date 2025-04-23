@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-import common.job_scrape_funcs as scrape
+import docker_scraper.job_scrape as scrape
 import boto3
 
 dynamodb = boto3.resource("dynamodb")

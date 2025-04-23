@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-import common.job_scrape_funcs as scrape
+import docker_dispatcher.url_scrape as scrape
 import boto3
 lambda_client = boto3.client("lambda")
 
