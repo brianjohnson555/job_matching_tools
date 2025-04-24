@@ -2,13 +2,15 @@ import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from proxies import proxies
+import re
+import json
 
 filters = {"company":{"jobs via dice", "jobot", "hiretalent", "lensa"},
            "title": {"manager", "lead"},
            }
 
-def scrape_job_single(url: str):
-    """Scrapes job title, company, location, description from the given url. Returns str of job description."""
+def scrape_job_single(url: str, query: str):
+    """Scrapes job title, company, location, description from the given url. Returns dict of job data."""
     headers = {"User-Agent": UserAgent().random, # make new random user
                 "Referer": "https://linkedin.com",
                 }
@@ -31,14 +33,25 @@ def scrape_job_single(url: str):
                 return None
             
             location = job.find("span", class_="topcard__flavor--bullet").text.strip()
-            post_time = job.find("span", class_="posted-time-ago__text").text.strip()
             job_des_elem = job.find("div", class_="description__text")
             job_des = extract_clean_text(job_des_elem)
-            
-            return {"title": title, 
+
+            scripts = soup.find_all("script")
+            post_time = "N/A"
+            for script in scripts:
+                if script.string and 'JobPosting' in script.string:
+                    try:
+                        json_text = re.search(r'({.*"@type":"JobPosting".*})', script.string, re.DOTALL)
+                        job_json = json.loads(json_text.group(1))
+                        post_time = job_json.get("datePosted")
+                    except Exception as e:
+                        print("Error parsing datePosted:", e)
+            print("Job successfully scraped")
+            return {"query": query,
+                    "date": post_time, 
+                    "title": title, 
                     "company": company, 
                     "link": url, 
-                    "posted time": post_time, 
                     "description": job_des,
                     "location": location,
                     }

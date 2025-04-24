@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-import docker_dispatcher.url_scrape as scrape
+import url_scrape as scrape
 import boto3
 lambda_client = boto3.client("lambda")
 
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     
     for url in urls:
         lambda_client.invoke(
-            FunctionName='YourScraperLambda',
+            FunctionName='job-scraper',
             InvocationType='Event',  # Async
-            Payload=json.dumps({'url': url})
+            Payload=json.dumps({'url': url, 'query': job_title.lower()})
         )
