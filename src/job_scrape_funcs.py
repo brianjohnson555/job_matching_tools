@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+import re
+import json
 import random
 import time
 from datetime import datetime
@@ -42,22 +44,21 @@ def parse_job_data(response):
         title_elem = job.find("h3", class_="base-search-card__title")
         company_elem = job.find("h4", class_="base-search-card__subtitle")
         location_elem = job.find("span", class_="job-search-card__location")
-        time_elem = job.find("time")
         link_elem = job.find("a", class_="base-card__full-link")  # Job details link
 
         title = title_elem.text.strip() if title_elem else "N/A"
         company = company_elem.text.strip() if company_elem else "N/A"
         job_location = location_elem.text.strip() if location_elem else "N/A"
         job_link = link_elem.get("href") if link_elem else "N/A"
-        job_time = time_elem.text.strip() if time_elem else "N/A"
+
         if company.lower() in filters["company"] or any(title.lower().find(filt)>=0 for filt in filters["title"]):
             print("Job filtered out") # job posting gets filtered out, don't scrape description or append to list
         else:
-            job_des = scrape_job_description_single(job_link) if link_elem else "N/A"
+            job_des, job_time = scrape_job_description_single(job_link) if link_elem else "N/A"
             jobs.append({"title": title, 
                         "company": company, 
                         "link": job_link, 
-                        "posted time": job_time, 
+                        "date": job_time, 
                         "description": job_des,
                         "location": job_location,
                         })
@@ -94,6 +95,7 @@ def scrape_jobs(pages=3, job_title="Data Scientist", location="Chicago", post_ti
         print(f"Scraping page {page}")
         try:
             # Get new page url and make request
+            time.sleep(random.uniform(2,3))
             url = f"{API_url}keywords={job_title}&location={location}&f_TPR=r{int(post_time*86400)}&start={int(page*10)}"
             response = requests.get(url, headers=headers, proxies=proxies, cookies=cookies, timeout=10)
 
@@ -125,16 +127,28 @@ def scrape_job_description_single(url: str):
 
         if response.status_code != 200:
             print(f"Failed to retrieve job details: {response.status_code}")
-            return None
+            return None, None
         else:
             soup = BeautifulSoup(response.text, "html.parser")
+
+            scripts = soup.find_all("script")
+            job_time = 0
+            for script in scripts:
+                if script.string and 'JobPosting' in script.string:
+                    try:
+                        json_text = re.search(r'({.*"@type":"JobPosting".*})', script.string, re.DOTALL)
+                        job_json = json.loads(json_text.group(1))
+                        job_time = job_json.get("datePosted")
+                    except Exception as e:
+                        print("Error parsing JSON:", e)
+
             job_description_elem = soup.find("div", class_="description__text")
             job_des = extract_clean_text(job_description_elem)
-            return job_des
+            return job_des, job_time
     except Exception as e: 
         print("Exception during description scrape.")
         print(e)
-        return None
+        return None, None
 
 def scrape_job_descriptions(jobs: list):
     """Scrapes all job descriptions from the given jobs list. Returns jobs list."""
