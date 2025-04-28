@@ -67,9 +67,9 @@ def score_keywords(row, word_scores):
             sim *= word_scores[kw]
     return sim
 
-def parse_resume(resume_path: str):
+def parse_resume(resume_stream):
     """Parses resume assuming pdf format."""
-    doc = pymupdf.open(resume_path) # open a document
+    doc = pymupdf.open(stream=resume_stream.getvalue(), filetype="pdf") # open a document
     text = ""
     for page in doc: # iterate the document pages
         text += page.get_text().replace("\n", " ") # get plain text encoded as UTF-8

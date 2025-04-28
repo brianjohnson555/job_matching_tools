@@ -2,13 +2,21 @@ import json
 import pandas as pd
 import analysis as ana
 import models as models
+import io
 import boto3
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta, timezone
 
-
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table('job-db')
+s3 = boto3.client('s3')
+bucket_name = 'job-tools'
+object_key = 'uploads/resume.pdf'
+# Get PDF from S3
+print("Setting up resume file")
+response = s3.get_object(Bucket=bucket_name, Key=object_key)
+pdf_bytes = response['Body'].read()
+pdf_file_like = io.BytesIO(pdf_bytes)
 
 def lambda_handler(event, context):
     try:
@@ -30,7 +38,7 @@ def lambda_handler(event, context):
     items = response['Items']
     raw_df = pd.DataFrame(items)
     print("Finding matches")
-    df = ana.find_job_match(models.embed_model, models.nlp_model, raw_df, "data/resume.pdf", models.stop_words, word_scores)
+    df = ana.find_job_match(models.embed_model, models.nlp_model, raw_df, pdf_file_like, models.stop_words, word_scores)
     print("Generating report")
     html = ana.generate_html_report(df)
     
