@@ -20,5 +20,11 @@ def lambda_handler(event, context):
         
     job_data = scrape.scrape_job_single(url, query)
     
-    response = table.put_item(Item=job_data)
-    print("DynamoDB put_item response:", response)
+    if not job_data:
+        job_data = scrape.scrape_job_single(url, query) # try again
+    
+    if job_data:
+        response = table.put_item(Item=job_data)
+        print("DynamoDB put_item response:", response)
+    else:
+        print("Failed job scraping, no data sent to DynamoDB")

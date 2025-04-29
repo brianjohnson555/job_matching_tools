@@ -62,6 +62,6 @@ def scrape_job_urls(pages=3, job_title="Data Scientist", location="Chicago", pos
         except Exception as e:
             print("Exception occured during scraping.")
             print(e)
-            return job_urls
+            pass
     print("Finished!")
     return job_urls
