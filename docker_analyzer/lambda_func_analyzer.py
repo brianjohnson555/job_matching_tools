@@ -23,12 +23,12 @@ def lambda_handler(event, context):
         body = json.loads(event["body"])
         word_scores = body.get("word scores", dict())
         query = str(body.get("query",""))
-        post_time = float(body.get("post time", 0.25))
+        post_time = float(body.get("post time", 1))
         print("Request received with body")
     except:
         word_scores = event.get("word scores", dict())
         query = str(event.get("query","")).lower()
-        post_time_days = float(event.get("post time", 0.25))
+        post_time_days = float(event.get("post time", 1))
         post_time = (datetime.now(timezone.utc) - timedelta(days=post_time_days)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
         print("Request received without body")
     
@@ -36,7 +36,9 @@ def lambda_handler(event, context):
     
     response = table.query(KeyConditionExpression=Key('query').eq(query) & Key('date').gt(post_time))
     items = response['Items']
-    raw_df = pd.DataFrame(items)
+
+    expected_keys = ["query", "date", "title", "company", "description", "location", "link"]
+    raw_df = pd.DataFrame.from_records(items, columns=expected_keys)
     print("Finding matches")
     df = ana.find_job_match(models.embed_model, models.nlp_model, raw_df, pdf_file_like, models.stop_words, word_scores)
     print("Generating report")

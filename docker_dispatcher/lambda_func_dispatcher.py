@@ -6,6 +6,7 @@ import url_scrape as scrape
 
 
 def lambda_handler(event, context):
+    print(json.dumps(event))
     job_title = str(event.get("query",""))
     location = str(event.get("location", "United States"))
     pages = int(event.get("pages", 1))
