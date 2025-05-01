@@ -7,7 +7,8 @@ nlp_model = spacy.load("en_core_web_sm")
 embed_model = SentenceTransformer('models/sbert')
 
 stop_words = {"team", "work", "tool", "system", "experience", "problem", " ", "  ", "product", 
-                     "university", "degree", "fund", "member", "content"}
+                     "university", "degree", "fund", "member", "content", "benefit", "dental", "medical",
+                     "opportunity", "employer", "equal"}
 # add city and country names to stop words:
 with open("data/cities1000.txt", encoding="utf-8") as f:
     cities = set(line.split("\t")[1].lower() for line in f)

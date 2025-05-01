@@ -4,7 +4,7 @@ import uuid
 
 step = boto3.client('stepfunctions')
 
-REQUIRED_KEYS = ["query", "location", "pages", "post_time"]
+REQUIRED_KEYS = ["query", "location", "pages", "post_time", "word_scores"]
 
 def validate_input(body):
     missing = [key for key in REQUIRED_KEYS if key not in body]
@@ -22,6 +22,7 @@ def lambda_handler(event, context):
             "location": str(body.get("location", "United States")),
             "pages": int(body.get("pages", 10)),
             "post_time": float(body.get("post_time", 1)),
+            "word_scores": body.get("word_scores", dict()),
         }
 
         # start AWS step function execution

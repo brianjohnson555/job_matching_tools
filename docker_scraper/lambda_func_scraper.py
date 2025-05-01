@@ -11,11 +11,11 @@ def lambda_handler(event, context):
     try:
         body = json.loads(event["Payload"])
         url = str(body.get("url",""))
-        query = str(body.get("query",""))
+        query = str(body.get("query","").lower())
         print("Request received with body")
     except:
         url = str(event.get("url",""))
-        query = str(event.get("query",""))
+        query = str(event.get("query","").lower())
         print("Request received without body")
         
     job_data = scrape.scrape_job_single(url, query)
