@@ -1,6 +1,4 @@
 /env
-/data/fasttext
-/data/kaggle_postings
-/data/job_queries
-proxies*
+/data
+*proxies.py
 /models

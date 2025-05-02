@@ -7,3 +7,4 @@ Requests==2.32.3
 sentence_transformers==4.0.2
 spacy==3.8.5
 pysocks==1.7.1
+boto3==1.38
