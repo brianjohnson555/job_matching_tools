@@ -16,4 +16,7 @@ I use requests, fake-useragent, BeautifulSoup, and rotating residential proxies 
 Using the scraped JDs and the user's resume file, I employ a similarity ranking to identify top jobs where the JD best matches the resume. Cosine similarity is computed from embeddings generated from SBERT or FastText. I also employ a keyword identifier via Spacy NER to pick up matching keywords between the JD and resume (topics, skills, services). The user can add specific keywords to promote or demote the ranking of jobs in the results (for example, promote jobs that include the keyword "Python", demote jobs that include the keyword "Ph.D.").
 
 # Deployment
-Currently a work in progress, the web-scrape and job-match services are being deployed via Docker images to AWS cloud. The user can submit a query (job title, location, posted within X days, etc.) to a REST API, which passes the query to AWS Lambda to run the services. Results are returned via html and populated to a DynamoDB database for later use.
+The repository also includes several subdirectories for Docker containers, each with its own Dockerfile. I deploy these containers on AWS, where they are managed by Step Functions. An API gateway allows a user to POST a query to begin execution of the Step Function, which performs the web scrape and job-matching pipeline, returning results through the same API via GET. Deployment on AWS also allows concurrent scraping of multiple job descriptions, sepeding up the process.
+
+# Local functions
+Besides the deployed images, the repository contains a /local folder so that the pipeline can also be run locally.

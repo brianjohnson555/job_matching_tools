@@ -6,7 +6,7 @@ import json
 import random
 import time
 from datetime import datetime
-from src.proxies import proxies
+from local.proxies import proxies
 
 filters = {"company":{"jobs via dice", "jobot", "hiretalent", "lensa"},
            "title": {"manager", "lead", "director"},
