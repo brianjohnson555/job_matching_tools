@@ -1,3 +1,4 @@
+"""Entry point for Lambda function via lambda_handler()"""
 import json
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -6,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 REQUIRED_KEYS = ["query", "word_scores", "post_time"]
 
+# Verify input content has all required keys:
 def validate_input(event):
     missing = [key for key in REQUIRED_KEYS if key not in event]
     if missing:
@@ -28,12 +30,14 @@ def lambda_handler(event, context):
             "body": json.dumps({"Error": str(e)})
             }
     
+    # Query DynamoDB table to obtain scraped results:
     print("Getting data from DynamoDB")
     import pandas as pd
     dynamodb = boto3.resource("dynamodb")
     table = dynamodb.Table('job-db')
     response = table.query(KeyConditionExpression=Key('query').eq(query) & Key('date').gt(post_time))
     items = response['Items']
+    
     # Verify format and add None if key not available:
     expected_keys = ["query", "date", "title", "company", "description", "location", "link"]
     items_normalized = [{key: item.get(key, None) for key in expected_keys} for item in items]

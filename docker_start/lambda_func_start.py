@@ -1,11 +1,12 @@
+"""Entry point for Lambda Function, runs lambda_handler()."""
 import json
 import boto3
 import uuid
-
 step = boto3.client('stepfunctions')
 
 REQUIRED_KEYS = ["query", "location", "pages", "post_time", "word_scores"]
 
+# check if input format is as it should be:
 def validate_input(body):
     missing = [key for key in REQUIRED_KEYS if key not in body]
     if missing:
@@ -13,6 +14,7 @@ def validate_input(body):
 
 def lambda_handler(event, context):
     try:
+        # Get input data:
         body = json.loads(event["body"]) if "body" in event else event
         validate_input(body)
         request_id = str(uuid.uuid4())
@@ -20,7 +22,7 @@ def lambda_handler(event, context):
         input_payload = {
             "query": str(body.get("query","")),
             "location": str(body.get("location", "United States")),
-            "pages": int(body.get("pages", 10)),
+            "pages": int(min(body.get("pages", 10), 100)), # maximum of 100 pages allowed
             "post_time": float(body.get("post_time", 1)),
             "word_scores": body.get("word_scores", dict()),
         }

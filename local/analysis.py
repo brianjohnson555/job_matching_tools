@@ -1,13 +1,15 @@
 """Analysis functions to match scraped job data with resume."""
+# import packages and data
 from numpy import dot
 from numpy.linalg import norm
 import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'
+pd.options.mode.chained_assignment = None  # default='warn' # eliminates some uneccessary import errors
 import pymupdf
 import re
 
 def cos_sim(a,b):
     """Cosine similarity between vectors a, b"""
+    
     return dot(a, b)/(norm(a)*norm(b))
 
 def find_job_match(embed_model, nlp_model, job_data: pd.DataFrame, resume_path: str, stop_words: set, word_scores: dict):
@@ -16,13 +18,15 @@ def find_job_match(embed_model, nlp_model, job_data: pd.DataFrame, resume_path: 
     (2) keyword match between resume and job description via NER"""
 
     resume = parse_resume(resume_path)
+    df = job_data[job_data["description"].isnull()==False] # remove any null values
 
     # Compute embeddings:
-    df = job_data[job_data["description"].isnull()==False] # remove any null values
+    ### If using SBERT:
     df["embedding"] = df["description"].map(lambda x: embed_model.encode(x))
+    resume_embed = embed_model.encode(resume, convert_to_tensor=True)
+    ### If using fastText:
     # df["embedding"] = df["description"].map(ft.get_word_vector)
     # resume_embed = ft.get_word_vector(resume)
-    resume_embed = embed_model.encode(resume, convert_to_tensor=True)
 
     # Calculate keywords between resume, job description:
     df["keywords"] = df["description"].map(lambda job_desc: find_keywords(nlp_model, stop_words, job_desc, resume=resume))
@@ -35,12 +39,12 @@ def find_job_match(embed_model, nlp_model, job_data: pd.DataFrame, resume_path: 
     df.sort_values(by=["similarity_adj"], ascending=False, inplace=True)
     df = df[0:25].copy()# top 25 results
     df.reset_index(inplace=True, drop=True)
-    # df.sort_values(by="keywords", key=lambda x: x.str.len(), ascending=False, inplace=True) # sort by highest number of matching keywords
 
     return df
 
 def find_keywords(nlp_model, stop_words: set, job_desc: str, resume: str):
     """Returns set of keywords based on NER via spacy pretrained."""
+
     job_desc = re.sub(r'[^\w\s]|[\d_]', '', job_desc) # remove punctuation
     resume = re.sub(r'[^\w\s]|[\d_]', '', resume) # remove punctuation
     res = nlp_model(resume)
@@ -61,6 +65,7 @@ def find_keywords(nlp_model, stop_words: set, job_desc: str, resume: str):
 
 def score_keywords(row, word_scores):
     """Modifies similarity score based on presence of certain keywords"""
+
     sim = row["similarity"]
     for kw in row["keywords"]:
         if kw in word_scores:
@@ -69,6 +74,7 @@ def score_keywords(row, word_scores):
 
 def parse_resume(resume_path: str):
     """Parses resume assuming pdf format."""
+
     doc = pymupdf.open(resume_path) # open a document
     text = ""
     for page in doc: # iterate the document pages
@@ -76,7 +82,8 @@ def parse_resume(resume_path: str):
     return text
 
 def generate_report(job_match_df: pd.DataFrame):
-    """Prints a generated report based on job match output."""
+    """Prints to terminal a report based on job match output."""
+
     for result in job_match_df.index[:10]: # retrieve top 10 results
         print(f"{job_match_df["title"][result]}, adj_score={job_match_df["similarity_adj"][result]:.2f}, orig_score={job_match_df["similarity"][result]:.2f}")
         print(f"{job_match_df["company"][result]}")
@@ -87,7 +94,8 @@ def generate_report(job_match_df: pd.DataFrame):
         print("\n\n") # space before next result
 
 def generate_html_report(job_match_df: pd.DataFrame) -> str:
-    """Generates an HTML-styled report based on job match output."""
+    """Returns an HTML-styled report based on job match output."""
+
     html = """
     <html>
     <head>
