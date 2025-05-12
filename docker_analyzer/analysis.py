@@ -77,7 +77,8 @@ def parse_resume(resume_stream):
 
 def generate_report(job_match_df: pd.DataFrame):
     """Prints a generated report based on job match output."""
-    for result in job_match_df.index[:10]: # retrieve top 10 results
+    max_idx = min(15, len(job_match_df.index))
+    for result in job_match_df.index[:max_idx]: # retrieve top 15 results
         print(f"{job_match_df["title"][result]}, adj_score={job_match_df["similarity_adj"][result]:.2f}, orig_score={job_match_df["similarity"][result]:.2f}")
         print(f"{job_match_df["company"][result]}")
         print(f"{job_match_df["location"][result]}")
@@ -107,7 +108,8 @@ def generate_html_report(job_match_df: pd.DataFrame) -> str:
         <h2>Top Job Matches</h2>
     """
     idx = 0
-    for result in job_match_df.index[:10]:  # top 10 results
+    max_idx = min(15, len(job_match_df.index))
+    for result in job_match_df.index[:max_idx]:  # top 15 results
         idx += 1
         html += f"""
         <div class="job-card">

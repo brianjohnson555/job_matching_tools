@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup
 data =  json.dumps({
     "query": "Data Scientist",
     "location": "Chicago",
-    "pages": 10,
-    "post_time": 1,
+    "pages": 100,
+    "post_time": 4,
     "word_scores": {
         "phd": 1.1,
         "python": 1.1,
@@ -55,7 +55,7 @@ while going:
         print(response.text)
         # Sometimes API returns error even though step function continues successful execution.
         # This enables some retries of the GET request:
-        time.sleep(5)
+        time.sleep(60)
         retries += 1
         if retries > 3:
             print("Retries exceeded, stopping.")
