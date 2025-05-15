@@ -1,0 +1,5 @@
+airflow/
+data/
+env/
+local/
+models/

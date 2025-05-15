@@ -13,7 +13,7 @@ data =  json.dumps({
     "query": "Data Scientist",
     "location": "Chicago",
     "pages": 100,
-    "post_time": 1,
+    "post_time": 1.1,
     "word_scores": {
         "phd": 1.1,
         "python": 1.1,

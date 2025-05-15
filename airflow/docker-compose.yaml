@@ -163,6 +163,8 @@ services:
   airflow-worker:
     <<: *airflow-common
     command: celery worker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
       # yamllint disable rule:line-length
       test:

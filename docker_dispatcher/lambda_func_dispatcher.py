@@ -1,7 +1,9 @@
 """Entry point for Lambda Function"""
+import sys
 import json
 from bs4 import BeautifulSoup
 import url_scrape as scrape
+import traceback
 
 def lambda_handler(event, context):
     # get input query from event:
@@ -19,3 +21,19 @@ def lambda_handler(event, context):
             "url_list": urls,
             "query": job_title
             }
+
+if __name__ == "__main__":
+    try:
+        if len(sys.argv) < 2:
+            print("JSON input not supplied. Expected command: python lambda_func_dispatcher '<json_input>'", flush=True)
+            sys.exit(1)
+
+        event = json.loads(sys.argv[1])
+        context = {}  # Simulate empty Lambda context
+        result = lambda_handler(event, context)
+        print(json.dumps(result), flush=True)
+    except Exception as e:
+        print(e)
+        print("[ERROR] Exception occurred:", file=sys.stderr, flush=True)
+        traceback.print_exc()
+        sys.exit(1)
