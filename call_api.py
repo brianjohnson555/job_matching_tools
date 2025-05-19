@@ -65,6 +65,7 @@ while going:
         time.sleep(30) # wait before polling again
     elif response.json()["status"]=="FAILED" or response.json()["status"]=="TIMED_OUT":
         print("Step function failed, check CloudWatch logs")
+        break
     elif response.json()["status"]=="SUCCEEDED":
         going = False
         html = response.json()["output"]["Payload"]["body"] # get ranked jobs from API response

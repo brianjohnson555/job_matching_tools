@@ -108,8 +108,8 @@ def generate_html_report(job_match_df: pd.DataFrame) -> str:
         <h2>Top Job Matches</h2>
     """
     idx = 0
-    max_idx = min(15, len(job_match_df.index))
-    for result in job_match_df.index[:max_idx]:  # top 15 results
+    max_idx = min(20, len(job_match_df.index))
+    for result in job_match_df.index[:max_idx]:  # top 20 results
         idx += 1
         html += f"""
         <div class="job-card">
