@@ -1,0 +1,36 @@
+##### STAGE 1: Build #####
+# Use official Python image as base
+FROM python:3.12-slim AS builder
+# Set working directory
+WORKDIR /
+# Copy packages
+COPY requirements.txt .
+# Install dependencies
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir sentence-transformers
+RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
+# Set cache path
+ENV SPACY_DATA_DIR=/cache/spacy \
+    HF_HOME=/cache/sbert
+RUN python -m spacy download en_core_web_sm
+RUN python -c "\
+from sentence_transformers import SentenceTransformer;\
+model = SentenceTransformer('all-MiniLM-L6-v2');\
+model.save('models/sbert')"
+# Clear cache
+RUN rm -rf /cache
+
+##### STAGE 2: Package #####
+FROM python:3.12-slim
+WORKDIR /var/task
+# Copy python libraries
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+# Copy downloaded model
+COPY --from=builder /models ./models
+# Copy source code
+COPY /data /data
+# Copy source code
+COPY . .
+
+# Set entry point
+CMD ["lambda_func_analyzer"]

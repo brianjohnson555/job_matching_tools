@@ -1,7 +1,27 @@
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.operators.python import PythonOperator
+from airflow.models.xcom_arg import XComArg
 from airflow.utils.task_group import TaskGroup
 from datetime import datetime, timedelta
+
+def build_expand_input(ti):
+    import json
+    import logging
+
+    try:
+        result = ti.xcom_pull(task_ids="task_dispatcher", key="return_value")
+        url_list = result["url_list"]
+        query = result["query"]
+
+        if isinstance(url_list, str):
+            url_list = json.loads(url_list)  # Parse JSON string if needed
+
+        return [{"URL": url, "QUERY": query} for url in url_list]
+
+    except Exception as e:
+        logging.error(f"Error occurred: {e}", exc_info=True)
+        raise  # Ensure Airflow marks task as failed
 
 
 default_args = {
@@ -29,7 +49,7 @@ with DAG(
             "python": 1.1,
             "senior": 0.8
             }
-    },
+    }
 ) as dag:
     
     # Rank step after all scrapers finish
@@ -45,34 +65,37 @@ with DAG(
         docker_url="unix://var/run/docker.sock",
         tty=True,
         network_mode="bridge",
+        do_xcom_push=True,
     )
 
-    if False:
-        # Grouped parallel tasks
-        with TaskGroup("scrapers") as task_scraper:
-            for i, url in enumerate(SCRAPE_TARGETS):
-                DockerOperator(
-                    task_id=f"scraper_{i}",
-                    image="docker_scraper:latest",
-                    api_version='auto',
-                    auto_remove='success',
-                    command=(
-                        "python lambda_func_scraper.py "
-                        "'{{ params | tojson | replace('\"', '\\\"') }}'"
-                    ),
-                    docker_url="unix://var/run/docker.sock",
-                    network_mode="bridge",
-                )
+    task_load_urls = PythonOperator(
+        task_id="load_urls",
+        python_callable=build_expand_input
+    )
 
-        # Rank step after all scrapers finish
-        task_analyzer = DockerOperator(
-            task_id="analyzer",
-            image="docker_analyzer:latest",
-            api_version='auto',
-            auto_remove='success',
-            command="",  # Add args if needed
-            docker_url="unix://var/run/docker.sock",
-            network_mode="bridge",
-        )
+    task_scraper = DockerOperator.partial(
+        task_id=f"scraper",
+        image="docker_scraper:latest",
+        api_version='auto',
+        auto_remove='success',
+        command=(
+            "python lambda_func_scraper.py {{ params.item }}"
+        ),
+        docker_url="unix://var/run/docker.sock",
+        network_mode="bridge",
+    ).expand(
+        environment=XComArg(task_load_urls)
+    )
 
-    task_dispatcher #>> task_scraper >> task_analyzer
+    # Rank step after all scrapers finish
+    task_analyzer = DockerOperator(
+        task_id="analyzer",
+        image="docker_analyzer:latest",
+        api_version='auto',
+        auto_remove='success',
+        command="",  # Add args if needed
+        docker_url="unix://var/run/docker.sock",
+        network_mode="bridge",
+    )
+
+    task_dispatcher >> task_load_urls >> task_scraper >> task_analyzer

@@ -60,6 +60,7 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__API_AUTH__JWT_SECRET: 'qaeii8u86ktvckil'
+    AIRFLOW__WEBSERVER__SECRET_KEY: '9iesiq60aM3iYEPE1BSZyg'
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
@@ -165,6 +166,7 @@ services:
     command: celery worker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./dags:/opt/airflow/dags
     healthcheck:
       # yamllint disable rule:line-length
       test:
