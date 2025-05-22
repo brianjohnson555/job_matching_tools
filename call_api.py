@@ -7,13 +7,14 @@ Output will write to "output.html", viewable from any browser. """
 import requests
 import json
 import time
+import webbrowser
 from bs4 import BeautifulSoup
 
 data =  json.dumps({
     "query": "Data Scientist",
     "location": "Chicago",
     "pages": 100,
-    "post_time": 4,
+    "post_time": 1.1,
     "word_scores": {
         "phd": 1.1,
         "python": 1.1,
@@ -74,5 +75,6 @@ while going:
         with open("output.html", "w", encoding="utf-8") as file:
             file.write(str(soup)) # write html to file
         print("Finished!")
+        webbrowser.open("output.html")
     
 
