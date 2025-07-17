@@ -6,12 +6,7 @@ from proxies import proxies
 import re
 import json
 
-# filters to remove jobs based on company or job title content
-filters = {"company":{"jobs via dice", "jobot", "hiretalent", "lensa"},
-           "title": {"manager", "lead"},
-           }
-
-def scrape_job_single(url: str, query: str):
+def scrape_job_single(url: str, query: str, filters: dict):
     """Scrapes job title, company, location, description from the given url. Returns dict of job data."""
     headers = {"User-Agent": UserAgent().random, # make new random user
                 "Referer": "https://linkedin.com",

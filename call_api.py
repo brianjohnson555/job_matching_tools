@@ -13,8 +13,8 @@ from bs4 import BeautifulSoup
 data =  json.dumps({
     "query": "Data Scientist",
     "location": "Chicago",
-    "pages": 100,
-    "post_time": 1.1,
+    "pages": 50,
+    "post_time": 1,
     "word_scores": {
         "phd": 1.1,
         "python": 1.1,
@@ -63,7 +63,7 @@ while going:
             break
     elif response.json()["status"]=="RUNNING":
         print("Running...")
-        time.sleep(30) # wait before polling again
+        time.sleep(60) # wait before polling again
     elif response.json()["status"]=="FAILED" or response.json()["status"]=="TIMED_OUT":
         print("Step function failed, check CloudWatch logs")
         break

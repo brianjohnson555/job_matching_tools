@@ -3,6 +3,14 @@ import json
 from bs4 import BeautifulSoup
 import job_scrape as scrape
 import boto3
+import json
+
+s3 = boto3.client("s3")
+
+def load_filters(bucket, key):
+    response = s3.get_object(Bucket=bucket, Key=key)
+    filters = json.loads(response['Body'].read().decode('utf-8'))
+    return filters
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table('job-db')
@@ -19,12 +27,16 @@ def lambda_handler(event, context):
         url = str(event.get("url",""))
         query = str(event.get("query","").lower())
         print("Request received without body")
+
+    object_key = 'uploads/filters.json'
+    bucket_name = 'job-tools'
+    filters = load_filters(bucket_name, object_key)
         
     # Scrape job data:
-    job_data = scrape.scrape_job_single(url, query)
+    job_data = scrape.scrape_job_single(url, query, filters)
     
     if not job_data: # if initial call had an error, retry
-        job_data = scrape.scrape_job_single(url, query) # try again
+        job_data = scrape.scrape_job_single(url, query, filters) # try again
     
     if job_data:
         response = table.put_item(Item=job_data) # write data to table

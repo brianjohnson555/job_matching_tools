@@ -20,3 +20,6 @@ The repository also includes several subdirectories for Docker containers, each 
 
 # Local functions
 Besides the deployed images, the repository contains a /local folder so that the pipeline can also be run locally.
+
+# Example output
+See output.html in the main repository directory for an example of the current pipeline output.
